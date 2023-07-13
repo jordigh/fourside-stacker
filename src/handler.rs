@@ -1,7 +1,8 @@
+use std::fs;
 use crate::{ws, Client, Clients, Result};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use warp::{http::StatusCode, reply::json, ws::Message, Reply};
+use warp::{http::StatusCode, http::Response, reply::json, ws::Message, Reply};
 
 #[derive(Deserialize, Debug)]
 pub struct RegisterRequest {
@@ -74,5 +75,10 @@ pub async fn ws_handler(ws: warp::ws::Ws, id: String, clients: Clients) -> Resul
 }
 
 pub async fn health_handler() -> Result<impl Reply> {
-    Ok(StatusCode::OK)
+    Ok(Response::builder().status(StatusCode::OK).body("All's good here!"))
+}
+
+pub async fn index_handler() -> Result<impl Reply> {
+    let index_html = fs::read_to_string("www/static/index.html").expect("should find index.html");
+    Ok(Response::builder().status(StatusCode::OK).body(index_html))
 }

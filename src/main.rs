@@ -6,6 +6,7 @@ use warp::{ws::Message, Filter, Rejection};
 
 mod handler;
 mod ws;
+mod db;
 
 type Result<T> = std::result::Result<T, Rejection>;
 type Clients = Arc<RwLock<HashMap<String, Client>>>;
@@ -21,6 +22,8 @@ pub struct Client {
 async fn main() {
     let clients: Clients = Arc::new(RwLock::new(HashMap::new()));
 
+    let index_route = warp::path::end().and_then(handler::index_handler);
+    let static_route = warp::path("static").and(warp::fs::dir("www/static"));
     let health_route = warp::path!("health").and_then(handler::health_handler);
 
     let register = warp::path("register");
@@ -46,14 +49,18 @@ async fn main() {
         .and(with_clients(clients.clone()))
         .and_then(handler::ws_handler);
 
-    let routes = health_route
+    let routes = index_route
+        .or(static_route)
+        .or(health_route)
         .or(register_routes)
         .or(ws_route)
         .or(publish)
         .with(warp::cors().allow_any_origin());
 
     warp::serve(routes).run(([127, 0, 0, 1], 8000)).await;
+    db::db_init();
 }
+
 
 fn with_clients(clients: Clients) -> impl Filter<Extract = (Clients,), Error = Infallible> + Clone {
     warp::any().map(move || clients.clone())

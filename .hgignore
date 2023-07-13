@@ -1,1 +1,7 @@
 ^target/
+react/node_modules
+react/dist
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
