@@ -102,7 +102,7 @@ body {
 }
 
 .falling-right {
-  animation-durations: 1s;
+  animation-duration: 1s;
   animation-name: fallingRight;
   animation-iteration-count: 1;
 }

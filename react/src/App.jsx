@@ -46,10 +46,13 @@ function Board({ redIsNext, squares, onPlay }) {
     }
     
     if(col > -1 && col < row.length) {
-      row[col] = nextPiece;
+      row[col] = {
+        value: nextPiece,
+        direction: fallingDirection 
+      };
     }
     
-    onPlay(squares);
+    onPlay(squares, rowNum, col);
   }
 
   const winner = calculateWinner(squares);
@@ -71,7 +74,11 @@ function Board({ redIsNext, squares, onPlay }) {
             <Slot direction="🡆" onSlotClick={() => handleClick(row, "right")}/>
             {
               [...Array(gameSize).keys()].map((col) => {
-                return <Square key={col} value={squares[row][col]} />;
+                return <Square 
+                         key={col} 
+                         value={squares[row][col]?.value} 
+                         fallingDirection={squares[row][col]?.direction} 
+                       />;
               })
             }
             <Slot direction="🡄"  onSlotClick={() => handleClick(row, "left")}/>
