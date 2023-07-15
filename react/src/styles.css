@@ -88,11 +88,45 @@ body {
 }
 
 .red {
-    color: red;
+  color: red;
 }
 
 .black {
-    color: black;
+  color: black;
+}
+
+.falling-left {
+  animation-duration: 1s;
+  animation-name: fallingLeft;
+  animation-iteration-count: 1;
+}
+
+.falling-right {
+  animation-durations: 1s;
+  animation-name: fallingRight;
+  animation-iteration-count: 1;
+}
+
+@keyframes fallingLeft {
+  from {
+    margin-right: 100%;
+    width: 300%;
+  }
+  to {
+    margin-right: 0%;
+    width: 100%;
+  }
+}
+
+@keyframes fallingRight {
+  from {
+    margin-left: 100%;
+    width: 300%;
+  }
+  to {
+    margin-left: 0%;
+    width: 100%;
+  }
 }
 
 .board-row:after {
