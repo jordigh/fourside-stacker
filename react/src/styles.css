@@ -4,7 +4,7 @@
 
 body {
   font-family: sans-serif;
-  margin: 20px;
+  margin: 5%;
   padding: 0;
 }
 
@@ -50,12 +50,6 @@ ul {
   box-sizing: border-box;
 }
 
-body {
-  font-family: sans-serif;
-  margin: 20px;
-  padding: 0;
-}
-
 .square {
   background: #fff;
   border: 1px solid #999;
@@ -69,6 +63,7 @@ body {
   margin-top: -1px;
   text-align: center;
   width: 34px;
+  overflow: hidden;
 }
 
 .slot {
@@ -96,36 +91,34 @@ body {
 }
 
 .falling-left {
-  animation-duration: 1s;
+  animation-duration: 0.75s;
   animation-name: fallingLeft;
   animation-iteration-count: 1;
+  position: relative;
 }
 
 .falling-right {
-  animation-duration: 1s;
+  animation-duration: 0.75s;
   animation-name: fallingRight;
   animation-iteration-count: 1;
+  position: relative;
 }
 
 @keyframes fallingLeft {
   from {
-    margin-right: 100%;
-    width: 300%;
+    right: 20px;
   }
   to {
-    margin-right: 0%;
-    width: 100%;
+    right: 0px;
   }
 }
 
 @keyframes fallingRight {
   from {
-    margin-left: 100%;
-    width: 300%;
+    left: 20px;
   }
   to {
-    margin-left: 0%;
-    width: 100%;
+    left: 0px;
   }
 }
 

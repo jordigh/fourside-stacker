@@ -34,25 +34,24 @@ function Board({ redIsNext, squares, onPlay }) {
       return;
     }
     const row = squares[rowNum];
-    let col;
+    let colNum;
     if (fallingDirection === 'right') {
-      col = row.findIndex(element => element === null);
+      colNum = row.findIndex(element => element === null);
     }
     else {
       // findLastIndex is a recent addition, not all browsers support
       // it, have to roll our own instead.
       const reverseRow = row.slice().reverse();
-      col = row.length  - reverseRow.findIndex(element => element === null) - 1;
+      colNum = row.length  - reverseRow.findIndex(element => element === null) - 1;
     }
-    
-    if(col > -1 && col < row.length) {
-      row[col] = {
+
+    if(colNum > -1 && colNum < row.length) {
+      row[colNum] = {
         value: nextPiece,
-        direction: fallingDirection 
+        direction: fallingDirection
       };
+      onPlay(squares, rowNum, colNum);
     }
-    
-    onPlay(squares, rowNum, col);
   }
 
   const winner = calculateWinner(squares);
@@ -74,10 +73,10 @@ function Board({ redIsNext, squares, onPlay }) {
             <Slot direction="🡆" onSlotClick={() => handleClick(row, "right")}/>
             {
               [...Array(gameSize).keys()].map((col) => {
-                return <Square 
-                         key={col} 
-                         value={squares[row][col]?.value} 
-                         fallingDirection={squares[row][col]?.direction} 
+                return <Square
+                         key={col}
+                         value={squares[row][col]?.value}
+                         fallingDirection={squares[row][col]?.direction}
                        />;
               })
             }
@@ -92,42 +91,20 @@ function Board({ redIsNext, squares, onPlay }) {
 }
 
 export default function Game() {
-  const [history, setHistory] = useState([Array(gameSize).fill(null).map(() => Array(gameSize).fill(null))]);
-  const [currentMove, setCurrentMove] = useState(0);
-  const redIsNext = currentMove % 2 === 0;
-  const currentSquares = history[currentMove];
+  const [squares, setSquares] = useState(Array(gameSize).fill(null).map(() => Array(gameSize).fill(null)));
+  const [currentMove, setCurrentMove] = useState(1);
+  const redIsNext = currentMove === 1;
 
   function handlePlay(nextSquares) {
-    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
-    setHistory(nextHistory);
-    setCurrentMove(nextHistory.length - 1);
+    setCurrentMove(currentMove * -1); // Red is +1, Black is -1
+    setSquares(nextSquares);
   }
 
-  function jumpTo(nextMove) {
-    setCurrentMove(nextMove);
-  }
-
-  const moves = history.map((squares, move) => {
-    let description;
-    if (move > 0) {
-      description = 'Go to move #' + move;
-    } else {
-      description = 'Go to game start';
-    }
-    return (
-      <li key={move}>
-        <button onClick={() => jumpTo(move)}>{description}</button>
-      </li>
-    );
-  });
 
   return (
     <div className="game">
       <div className="game-board">
-        <Board redIsNext={redIsNext} squares={currentSquares} onPlay={handlePlay} />
-      </div>
-      <div className="game-info">
-        <ol>{moves}</ol>
+        <Board redIsNext={redIsNext} squares={squares} onPlay={handlePlay} />
       </div>
     </div>
   );
