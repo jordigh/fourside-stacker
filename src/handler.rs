@@ -79,6 +79,6 @@ pub async fn health_handler() -> Result<impl Reply> {
 }
 
 pub async fn index_handler() -> Result<impl Reply> {
-    let index_html = fs::read_to_string("www/static/index.html").expect("should find index.html");
+    let index_html = fs::read_to_string("frontend/dist/index.html").expect("should find index.html");
     Ok(Response::builder().status(StatusCode::OK).body(index_html))
 }
