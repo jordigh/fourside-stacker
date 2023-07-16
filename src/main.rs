@@ -23,7 +23,7 @@ async fn main() {
     let clients: Clients = Arc::new(RwLock::new(HashMap::new()));
 
     let index_route = warp::path::end().and_then(handler::index_handler);
-    let static_route = warp::path("static").and(warp::fs::dir("www/static"));
+    let static_route = warp::path("static").and(warp::fs::dir("frontend/dist"));
     let health_route = warp::path!("health").and_then(handler::health_handler);
 
     let register = warp::path("register");
