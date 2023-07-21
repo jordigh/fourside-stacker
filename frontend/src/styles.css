@@ -79,6 +79,9 @@ ul {
   margin-top: -1px;
   text-align: center;
   width: 17px;
+}
+
+.yourTurn {
   cursor: pointer;
 }
 

@@ -1,23 +1,60 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { gameSize } from './constants';
-import { Board } from './components';
+import { Board, InfoBar } from './components';
 import { io } from 'socket.io-client';
 
-export default async function Game() {
+export default function Game() {
   const [squares, setSquares] = useState(Array(gameSize).fill(null).map(() => Array(gameSize).fill(null)));
   const [colour, setColour] = useState(null);
+  const [yourTurn, setYourTurn] = useState(false);
+  const [message, setMessage] = useState('Please wait...');
+  const [socket, setSocket] = useState();
 
-  const socketUrl = await 
+  useEffect(() => {
+    async function setupSocket() {
+      const response = await fetch(
+        'http://localhost:8000/register', {
+          method: 'POST',
+          body: JSON.stringify({
+            username: 'jordi'
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          mode: 'cors',
+        });
+      const json = await response.json();
+      setSocket(io(json.url));
+    }
+    setupSocket();
+  }, []);
 
-  function handlePlay(nextSquares) {
-    setCurrentMove(currentMove * -1); // Red is +1, Black is -1
-    setSquares(nextSquares);
+  socket.on('colour', colour => setColour(colour));
+  socket.on('squares', squares => setSquares(squares));
+  socket.on('turn', player => {
+    if (player === colour) {
+      setYourTurn(true);
+      setMessage('It is your turn. What is your move?');
+    } else {
+      setYourTurn(false);
+      setMessage(`Waiting for {player}'s move...`);
+    }
+  });
+
+  socket.on('winner', player => {
+    setYourTurn(false);
+    setMessage(player === colour ? 'You win!' : 'You lose...');
+  });
+
+  function slotClick(rowNum, colNum) {
+    socket.emit('click', rowNum, colNum);
   }
 
   return (
     <div className="game">
       <div className="game-board">
-        <Board redIsNext={redIsNext} squares={squares} onPlay={handlePlay} />
+        <InfoBar message={message} colour={colour}/>
+        <Board yourTurn={yourTurn} colour={colour} squares={squares} onSlotClick={slotClick} />
       </div>
     </div>
   );

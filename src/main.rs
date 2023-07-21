@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate log;
+
 use std::collections::HashMap;
 use std::convert::Infallible;
 use std::sync::Arc;
@@ -10,16 +13,25 @@ mod db;
 
 type Result<T> = std::result::Result<T, Rejection>;
 type Clients = Arc<RwLock<HashMap<String, Client>>>;
+type Db = Arc<RwLock<db::Db>>;
 
 #[derive(Debug, Clone)]
 pub struct Client {
-    pub user_id: usize,
+    pub user_id: i32,
     pub topics: Vec<String>,
     pub sender: Option<mpsc::UnboundedSender<std::result::Result<Message, warp::Error>>>,
 }
 
 #[tokio::main]
 async fn main() {
+    env_logger::init();
+    info!("starting up");
+
+    let db = match db::Db::db_init().await {
+        Err(err) => panic!("{}", err),
+        Ok(db) => Arc::new(RwLock::new(db))
+    };
+
     let clients: Clients = Arc::new(RwLock::new(HashMap::new()));
 
     let index_route = warp::path::end().and_then(handler::index_handler);
@@ -31,6 +43,7 @@ async fn main() {
         .and(warp::post())
         .and(warp::body::json())
         .and(with_clients(clients.clone()))
+        .and(with_db(db))
         .and_then(handler::register_handler)
         .or(register
             .and(warp::delete())
@@ -48,6 +61,19 @@ async fn main() {
         .and(warp::path::param())
         .and(with_clients(clients.clone()))
         .and_then(handler::ws_handler);
+    
+    let cors = warp::cors()
+        .allow_any_origin()
+        .allow_methods(vec!["POST", "GET"])
+        .allow_headers(vec![
+            "User-Agent",
+            "Sec-Fetch-Mode",
+            "Referer",
+            "Origin",
+            "Access-Control-Request-Method",
+            "Access-Control-Request-Headers",
+            "Content-Type",
+        ]);
 
     let routes = index_route
         .or(static_route)
@@ -55,13 +81,17 @@ async fn main() {
         .or(register_routes)
         .or(ws_route)
         .or(publish)
-        .with(warp::cors().allow_any_origin());
+        .with(cors);
 
+    println!("Listening at http://127.0.0.1:8000");
     warp::serve(routes).run(([127, 0, 0, 1], 8000)).await;
-    db::db_init();
 }
 
 
 fn with_clients(clients: Clients) -> impl Filter<Extract = (Clients,), Error = Infallible> + Clone {
     warp::any().map(move || clients.clone())
+}
+
+fn with_db(db: Db) -> impl Filter<Extract = (Db,), Error = Infallible> + Clone{
+    warp::any().map(move || db.clone())
 }

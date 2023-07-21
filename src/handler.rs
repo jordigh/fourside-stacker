@@ -1,12 +1,12 @@
 use std::fs;
-use crate::{ws, Client, Clients, Result};
+use crate::{ws, Client, Clients, Result, Db};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use warp::{http::StatusCode, http::Response, reply::json, ws::Message, Reply};
 
 #[derive(Deserialize, Debug)]
 pub struct RegisterRequest {
-    user_id: usize,
+    username: String,
 }
 
 #[derive(Serialize, Debug)]
@@ -17,7 +17,7 @@ pub struct RegisterResponse {
 #[derive(Deserialize, Debug)]
 pub struct Event {
     topic: String,
-    user_id: Option<usize>,
+    user_id: Option<i32>,
     message: String,
 }
 
@@ -40,17 +40,18 @@ pub async fn publish_handler(body: Event, clients: Clients) -> Result<impl Reply
     Ok(StatusCode::OK)
 }
 
-pub async fn register_handler(body: RegisterRequest, clients: Clients) -> Result<impl Reply> {
-    let user_id = body.user_id;
+pub async fn register_handler(body: RegisterRequest, clients: Clients, db: Db) -> Result<impl Reply> {
+    dbg!(&body);
+    let username = body.username;
+    let player = db.read().await.get_player(username).await;
     let uuid = Uuid::new_v4().as_simple().to_string();
-
-    register_client(uuid.clone(), user_id, clients).await;
+    register_client(uuid.clone(), player.id, clients).await;
     Ok(json(&RegisterResponse {
         url: format!("ws://127.0.0.1:8000/ws/{}", uuid),
     }))
 }
 
-async fn register_client(id: String, user_id: usize, clients: Clients) {
+async fn register_client(id: String, user_id: i32, clients: Clients) {
     clients.write().await.insert(
         id,
         Client {

@@ -17,19 +17,28 @@ function Disc({ colour, fallingDirection }) {
   );
 }
 
-function Slot({ direction, onSlotClick }) {
+function Slot({ yourTurn, direction, onSlotClick }) {
+  const className = yourTurn ? "slot yourTurn" :  "slot";
   return (
-    <div className="slot" onClick={onSlotClick}>
+    <div className={className} onClick={onSlotClick}>
       {direction}
     </div>
   );
 }
 
-export function Board({ redIsNext, squares, onPlay }) {
-  const nextPiece = redIsNext ? 'red' : 'black';
+export function InfoBar({ message, colour }) {
+  return (
+    <div className="status">
+      <span>
+        {message} <Disc colour={colour}/>
+      </span>
+    </div>
+  );
+}
 
+export function Board({ colour, yourTurn, squares, onSlotClick}) {
   function handleClick(rowNum, fallingDirection) {
-    if (calculateWinner(squares)) {
+    if (!yourTurn) {
       return;
     }
     const row = squares[rowNum];
@@ -46,30 +55,20 @@ export function Board({ redIsNext, squares, onPlay }) {
 
     if(colNum > -1 && colNum < row.length) {
       row[colNum] = {
-        value: nextPiece,
+        value: colour,
         direction: fallingDirection
       };
-      onPlay(squares, rowNum, colNum);
+      onSlotClick(rowNum, colNum);
     }
   }
 
-  const winner = calculateWinner(squares);
-  let status;
-  if (winner) {
-    status = <span>{'Winner: '}<Disc colour={winner}/></span>;
-  } else {
-    status = <span>{'Next player: '}<Disc colour={nextPiece}/></span>;
-  }
-
   return (
-    <>
-    <div className="status">{status}</div>
     <div className="board">
     {
       [...Array(gameSize).keys()].map((row) => {
         return (
           <div key={row} className="board-row">
-            <Slot direction="🡆" onSlotClick={() => handleClick(row, "right")}/>
+            <Slot yourTurn={yourTurn} direction="🡆" onSlotClick={() => handleClick(row, "right")}/>
             {
               [...Array(gameSize).keys()].map((col) => {
                 return <Square
@@ -79,16 +78,11 @@ export function Board({ redIsNext, squares, onPlay }) {
                        />;
               })
             }
-            <Slot direction="🡄"  onSlotClick={() => handleClick(row, "left")}/>
+            <Slot yourTurn={yourTurn} direction="🡄"  onSlotClick={() => handleClick(row, "left")}/>
           </div>
         );
       })
     }
     </div>
-    </>
   );
-}
-
-function calculateWinner(squares) {
-  return null;
 }
