@@ -30,7 +30,7 @@ export function InfoBar({ message, colour }) {
   return (
     <div className="status">
       <span>
-        {message} <Disc colour={colour}/>
+        <Disc colour={colour}/> {message} 
       </span>
     </div>
   );
@@ -58,7 +58,7 @@ export function Board({ colour, yourTurn, squares, onSlotClick}) {
         value: colour,
         direction: fallingDirection
       };
-      onSlotClick(rowNum, colNum);
+      onSlotClick(rowNum, fallingDirection);
     }
   }
 

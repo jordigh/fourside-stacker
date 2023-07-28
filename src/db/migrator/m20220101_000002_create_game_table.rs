@@ -20,20 +20,19 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Game::State).json().not_null())
-                    
-                    .col(ColumnDef::new(Game::PlayerOneId).integer())
-                    .col(ColumnDef::new(Game::PlayerTwoId).integer())
+                    .col(ColumnDef::new(Game::Squares).json_binary().not_null())
+                    .col(ColumnDef::new(Game::PlayerRedId).integer())
+                    .col(ColumnDef::new(Game::PlayerBlackId).integer())
                     .foreign_key(
                         ForeignKey::create()
-                            .name("fk-game-player-one-id")
-                            .from(Game::Table, Game::PlayerOneId)
+                            .name("fk-game-player-red-id")
+                            .from(Game::Table, Game::PlayerRedId)
                             .to(Player::Table, Player::Id),
                     )
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk-game-player-two-id")
-                            .from(Game::Table, Game::PlayerTwoId)
+                            .from(Game::Table, Game::PlayerBlackId)
                             .to(Player::Table, Player::Id),
                     )
                     .to_owned(),
@@ -53,7 +52,7 @@ impl MigrationTrait for Migration {
 pub enum Game {
     Table,
     Id,
-    State,
-    PlayerOneId,
-    PlayerTwoId,
+    Squares,
+    PlayerRedId,
+    PlayerBlackId,
 }

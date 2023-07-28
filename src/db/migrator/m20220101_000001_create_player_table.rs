@@ -22,7 +22,7 @@ impl MigrationTrait for Migration {
                         ColumnDef::new(Player::Name)
                             .string()
                             .not_null()
-                            .unique_key()
+                            .unique_key(),
                     )
                     .to_owned(),
             )

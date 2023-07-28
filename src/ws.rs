@@ -1,4 +1,6 @@
-use crate::{Client, Clients};
+use crate::game::{play_piece, Direction};
+use crate::Db;
+use crate::{Client, Clients, Sockets};
 use futures::{FutureExt, StreamExt};
 use serde::Deserialize;
 use serde_json::from_str;
@@ -7,11 +9,36 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 use warp::ws::{Message, WebSocket};
 
 #[derive(Deserialize, Debug)]
-pub struct TopicsRequest {
-    topics: Vec<String>,
+pub struct Play {
+    pub row: usize,
+    pub direction: Direction,
 }
 
-pub async fn client_connection(ws: WebSocket, id: String, clients: Clients, mut client: Client) {
+#[derive(Deserialize, Debug)]
+pub struct ClientRequest {
+    play: Option<Play>,
+}
+
+pub async fn remove_socket(uuid: String, clients: Clients, sockets: Sockets) {
+    let mut clients = clients.write().await;
+    if let Some(client) = clients.get(&uuid) {
+        let user_id = client.user_id;
+        clients.remove(&uuid);
+
+        let mut sockets = sockets.write().await;
+        if let Some(uuids) = sockets.get_mut(&user_id) {
+            uuids.remove(&uuid);
+        }
+    }
+}
+
+pub async fn client_connection(
+    ws: WebSocket,
+    uuid: String,
+    clients: Clients,
+    mut client: Client,
+    db: Db,
+) {
     let (client_ws_sender, mut client_ws_rcv) = ws.split();
     let (client_sender, client_rcv) = mpsc::unbounded_channel();
 
@@ -21,29 +48,35 @@ pub async fn client_connection(ws: WebSocket, id: String, clients: Clients, mut 
             eprintln!("error sending websocket msg: {}", e);
         }
     }));
+    let username = client.username.clone();
 
     client.sender = Some(client_sender);
-    clients.write().await.insert(id.clone(), client);
+    clients.write().await.insert(uuid.clone(), client);
 
-    println!("{} connected", id);
+    println!("{} connected at {}", &username, uuid);
 
     while let Some(result) = client_ws_rcv.next().await {
         let msg = match result {
             Ok(msg) => msg,
             Err(e) => {
-                eprintln!("error receiving ws message for id: {}): {}", id.clone(), e);
+                eprintln!(
+                    "error receiving ws message for id: {}): {}",
+                    uuid.clone(),
+                    e
+                );
                 break;
             }
         };
-        client_msg(&id, msg, &clients).await;
+        client_msg(uuid.clone(), msg, &clients, &db).await;
     }
 
-    clients.write().await.remove(&id);
-    println!("{} disconnected", id);
+    clients.write().await.remove(&uuid);
+    println!("{} disconnected at {}", &username, uuid);
 }
 
-async fn client_msg(id: &str, msg: Message, clients: &Clients) {
-    println!("received message from {}: {:?}", id, msg);
+async fn client_msg(uuid: String, msg: Message, clients: &Clients, db: &Db) {
+    println!("received message from {}: {:?}", uuid, msg);
+
     let message = match msg.to_str() {
         Ok(v) => v,
         Err(_) => return,
@@ -53,7 +86,7 @@ async fn client_msg(id: &str, msg: Message, clients: &Clients) {
         return;
     }
 
-    let topics_req: TopicsRequest = match from_str(&message) {
+    let client_req: ClientRequest = match from_str(&message) {
         Ok(v) => v,
         Err(e) => {
             eprintln!("error while parsing message to topics request: {}", e);
@@ -62,7 +95,10 @@ async fn client_msg(id: &str, msg: Message, clients: &Clients) {
     };
 
     let mut locked = clients.write().await;
-    if let Some(v) = locked.get_mut(id) {
-        v.topics = topics_req.topics;
+    if let Some(client) = locked.get_mut(&uuid) {
+        play_piece(client, clients, client_req.play, db).await
+    } else {
+        eprintln!("No player found with socket id {uuid}");
+        return;
     }
 }

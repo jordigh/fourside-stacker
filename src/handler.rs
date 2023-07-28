@@ -1,8 +1,10 @@
-use std::fs;
-use crate::{ws, Client, Clients, Result, Db};
+use std::collections::HashSet;
+
+use crate::{ws, Client, Clients, Db, Result, Sockets};
 use serde::{Deserialize, Serialize};
+use std::fs;
 use uuid::Uuid;
-use warp::{http::StatusCode, http::Response, reply::json, ws::Message, Reply};
+use warp::{http::Response, http::StatusCode, reply::json, Reply};
 
 #[derive(Deserialize, Debug)]
 pub struct RegisterRequest {
@@ -14,72 +16,74 @@ pub struct RegisterResponse {
     url: String,
 }
 
-#[derive(Deserialize, Debug)]
-pub struct Event {
-    topic: String,
-    user_id: Option<i32>,
-    message: String,
-}
-
-pub async fn publish_handler(body: Event, clients: Clients) -> Result<impl Reply> {
-    clients
-        .read()
-        .await
-        .iter()
-        .filter(|(_, client)| match body.user_id {
-            Some(v) => client.user_id == v,
-            None => true,
-        })
-        .filter(|(_, client)| client.topics.contains(&body.topic))
-        .for_each(|(_, client)| {
-            if let Some(sender) = &client.sender {
-                let _ = sender.send(Ok(Message::text(body.message.clone())));
-            }
-        });
-
-    Ok(StatusCode::OK)
-}
-
-pub async fn register_handler(body: RegisterRequest, clients: Clients, db: Db) -> Result<impl Reply> {
-    dbg!(&body);
+pub async fn register_handler(
+    body: RegisterRequest,
+    clients: Clients,
+    sockets: Sockets,
+    db: Db,
+) -> Result<impl Reply> {
     let username = body.username;
-    let player = db.read().await.get_player(username).await;
+    let player = db.write().await.get_player(&username).await;
     let uuid = Uuid::new_v4().as_simple().to_string();
-    register_client(uuid.clone(), player.id, clients).await;
+    register_client(username.clone(), player.id, uuid.clone(), clients, sockets).await;
     Ok(json(&RegisterResponse {
-        url: format!("ws://127.0.0.1:8000/ws/{}", uuid),
+        url: format!("ws://127.0.0.1:8000/ws/{uuid}"),
     }))
 }
 
-async fn register_client(id: String, user_id: i32, clients: Clients) {
+async fn register_client(
+    username: String,
+    user_id: i32,
+    uuid: String,
+    clients: Clients,
+    sockets: Sockets,
+) {
     clients.write().await.insert(
-        id,
+        uuid.clone(),
         Client {
+            username,
             user_id,
-            topics: vec![String::from("cats")],
             sender: None,
         },
     );
+    let mut sockets = sockets.write().await;
+    let uuids = sockets.entry(user_id).or_insert(HashSet::new());
+    (*uuids).insert(uuid);
 }
 
-pub async fn unregister_handler(id: String, clients: Clients) -> Result<impl Reply> {
-    clients.write().await.remove(&id);
+pub async fn unregister_handler(
+    uuid: String,
+    clients: Clients,
+    sockets: Sockets,
+) -> Result<impl Reply> {
+    ws::remove_socket(uuid, clients, sockets).await;
     Ok(StatusCode::OK)
 }
 
-pub async fn ws_handler(ws: warp::ws::Ws, id: String, clients: Clients) -> Result<impl Reply> {
-    let client = clients.read().await.get(&id).cloned();
+pub async fn ws_handler(
+    ws: warp::ws::Ws,
+    uuid: String,
+    clients: Clients,
+    db: Db,
+) -> Result<impl Reply> {
+    let client = clients.read().await.get(&uuid).cloned();
     match client {
-        Some(c) => Ok(ws.on_upgrade(move |socket| ws::client_connection(socket, id, clients, c))),
+        Some(client) => {
+            Ok(ws
+                .on_upgrade(move |socket| ws::client_connection(socket, uuid, clients, client, db)))
+        }
         None => Err(warp::reject::not_found()),
     }
 }
 
 pub async fn health_handler() -> Result<impl Reply> {
-    Ok(Response::builder().status(StatusCode::OK).body("All's good here!"))
+    Ok(Response::builder()
+        .status(StatusCode::OK)
+        .body("All's good here!"))
 }
 
 pub async fn index_handler() -> Result<impl Reply> {
-    let index_html = fs::read_to_string("frontend/dist/index.html").expect("should find index.html");
+    let index_html =
+        fs::read_to_string("frontend/dist/index.html").expect("should find index.html");
     Ok(Response::builder().status(StatusCode::OK).body(index_html))
 }

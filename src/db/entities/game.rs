@@ -7,29 +7,30 @@ use sea_orm::entity::prelude::*;
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub state: Json,
-    pub player_one_id: Option<i32>,
-    pub player_two_id: Option<i32>,
+    #[sea_orm(column_type = "JsonBinary")]
+    pub squares: Json,
+    pub player_red_id: Option<i32>,
+    pub player_black_id: Option<i32>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(
         belongs_to = "super::player::Entity",
-        from = "Column::PlayerOneId",
+        from = "Column::PlayerRedId",
         to = "super::player::Column::Id",
         on_update = "NoAction",
         on_delete = "NoAction"
     )]
-    Player2,
+    PlayerRed,
     #[sea_orm(
         belongs_to = "super::player::Entity",
-        from = "Column::PlayerTwoId",
+        from = "Column::PlayerBlackId",
         to = "super::player::Column::Id",
         on_update = "NoAction",
         on_delete = "NoAction"
     )]
-    Player1,
+    PlayerBlack,
 }
 
 impl ActiveModelBehavior for ActiveModel {}
