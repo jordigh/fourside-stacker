@@ -48,7 +48,7 @@ function GameState({ username }) {
 
         let message;
         if (game.winner) {
-          message = game.winner === game.current_player ? 'You win!' : 'You lose...';
+          message = game.winner === game.your_colour ? 'You win!' : 'You lose...';
         } else {
           message = yourTurn ? 'It is your turn. What is your move?' : `Waiting for ${game.current_player}'s turn`;
         }

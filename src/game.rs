@@ -1,5 +1,7 @@
+use std::collections::HashMap;
+
 use crate::ws::Play;
-use crate::{Client, Clients, Db, GAME_SIZE};
+use crate::{Client, Db, Sockets, GAME_SIZE};
 use serde::{Deserialize, Serialize};
 use warp::ws::Message;
 
@@ -34,62 +36,57 @@ struct Game {
 }
 
 pub async fn play_piece(
-    client: &mut Client,
-    clients: &Clients,
+    client: &Client,
+    clients: &HashMap<String, Client>,
     sockets: &Sockets,
     play: Option<Play>,
     db: &Db,
 ) {
-    if let Some(sender) = &client.sender {
-        let mut game = db.write().await.get_game(client.user_id).await;
-        let mut squares: Squares = serde_json::from_value(game.squares).unwrap();
-        let winner = calculate_winner(&squares);
-        let current_player = calculate_current_player(&squares, winner);
-        if let Some(play) = play {
-            place_piece(current_player, play, &mut squares);
-            game.squares = serde_json::to_value(&squares).unwrap();
-            db.write().await.save_game(game.clone()).await;
-        }
-
-        let your_colour;
-        let other_colour;
-        let other_player_id;
-        if game.player_red_id == Some(client.user_id) {
-            your_colour = Colour::Red;
-            other_colour = Colour::Black;
-            other_player_id = game.player_black_id;
-        } else {
-            your_colour = Colour::Black;
-            other_colour = Colour::Red;
-            other_player_id = game.player_red_id;
-        };
-
-        //FIXME: This is inefficient, we shouldn't do this calculation
-        // twice in a single play
-        let winner = calculate_winner(&squares);
-
-        let current_player = calculate_current_player(&squares, winner);
-        let game = Game {
-            squares: squares.to_vec(),
-            current_player,
-            winner,
-            your_colour,
-        };
-        let payload = serde_json::to_string(&game).unwrap();
-        let _ = sender.send(Ok(Message::text(&payload)));
-
-        /*
-        // Also send it to the other player, if there is one.
-        if let Some(id) = other_player_id {
-            if let Some(client) = clients.write().await.get_mut(&id) {
-                if let Some(sender) = &client.sender {
-
-                    let _ = sender.send(Ok(Message::text(&payload)));
-                }
-            }
-        }
-         */
+    let mut game = db.write().await.get_game(client.user_id).await;
+    let mut squares: Squares = serde_json::from_value(game.squares).unwrap();
+    let winner = calculate_winner(&squares);
+    let current_player = calculate_current_player(&squares, winner);
+    if let Some(play) = play {
+        place_piece(current_player, play, &mut squares);
+        game.squares = serde_json::to_value(&squares).unwrap();
+        db.write().await.save_game(game.clone()).await;
     }
+
+    let your_colour;
+    let other_colour;
+    let that_player_id;
+    if game.player_red_id == Some(client.user_id) {
+        your_colour = Colour::Red;
+        other_colour = Colour::Black;
+        that_player_id = game.player_black_id;
+    } else {
+        your_colour = Colour::Black;
+        other_colour = Colour::Red;
+        that_player_id = game.player_red_id;
+    };
+
+    //FIXME: This is inefficient, we shouldn't do this calculation
+    // twice in a single play
+    let winner = calculate_winner(&squares);
+    let current_player = calculate_current_player(&squares, winner);
+
+    let this_payload = serde_json::to_string(&Game {
+        squares: squares.to_vec(),
+        current_player,
+        winner,
+        your_colour,
+    })
+    .unwrap();
+    let that_payload = serde_json::to_string(&Game {
+        squares: squares.to_vec(),
+        current_player,
+        winner,
+        your_colour: other_colour,
+    })
+    .unwrap();
+
+    notify_players(Some(client.user_id), this_payload, clients, sockets).await;
+    notify_players(that_player_id, that_payload, clients, sockets).await;
 }
 
 fn place_piece(current_player: Option<Colour>, play: Play, squares: &mut Squares) {
@@ -104,6 +101,25 @@ fn place_piece(current_player: Option<Colour>, play: Play, squares: &mut Squares
                 value: colour,
                 direction: play.direction,
             })
+        }
+    }
+}
+
+async fn notify_players(
+    player_id: Option<i32>,
+    payload: String,
+    clients: &HashMap<String, Client>,
+    sockets: &Sockets,
+) {
+    if let Some(player_id) = player_id {
+        if let Some(sockets) = sockets.read().await.get(&player_id) {
+            for uuid in sockets {
+                if let Some(client) = clients.get(uuid) {
+                    if let Some(sender) = &client.sender {
+                        sender.send(Ok(Message::text(&payload))).unwrap();
+                    }
+                }
+            }
         }
     }
 }

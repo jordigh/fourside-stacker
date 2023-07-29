@@ -62,6 +62,7 @@ async fn main() {
         .and(warp::ws())
         .and(warp::path::param())
         .and(with_clients(clients.clone()))
+        .and(with_sockets(sockets.clone()))
         .and(with_db(db.clone()))
         .and_then(handler::ws_handler);
 

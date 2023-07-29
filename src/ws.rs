@@ -36,6 +36,7 @@ pub async fn client_connection(
     ws: WebSocket,
     uuid: String,
     clients: Clients,
+    sockets: Sockets,
     mut client: Client,
     db: Db,
 ) {
@@ -67,14 +68,14 @@ pub async fn client_connection(
                 break;
             }
         };
-        client_msg(uuid.clone(), msg, &clients, &db).await;
+        client_msg(uuid.clone(), msg, &clients, &sockets, &db).await;
     }
 
     clients.write().await.remove(&uuid);
     println!("{} disconnected at {}", &username, uuid);
 }
 
-async fn client_msg(uuid: String, msg: Message, clients: &Clients, db: &Db) {
+async fn client_msg(uuid: String, msg: Message, clients: &Clients, sockets: &Sockets, db: &Db) {
     println!("received message from {}: {:?}", uuid, msg);
 
     let message = match msg.to_str() {
@@ -93,10 +94,10 @@ async fn client_msg(uuid: String, msg: Message, clients: &Clients, db: &Db) {
             return;
         }
     };
-
-    let mut locked = clients.write().await;
-    if let Some(client) = locked.get_mut(&uuid) {
-        play_piece(client, clients, client_req.play, db).await
+    
+    let clients = clients.write().await;
+    if let Some(client) = clients.get(&uuid) {
+        play_piece(client, &clients, sockets, client_req.play, db).await
     } else {
         eprintln!("No player found with socket id {uuid}");
         return;
