@@ -107,6 +107,13 @@ ul {
   position: relative;
 }
 
+.falling-win {
+  animation-duration: 3s;
+  animation-name: fallingWin;
+  animation-iteration-count: 1;
+  background-color: #ffa;
+}
+
 @keyframes fallingLeft {
   from {
     right: 20px;
@@ -123,6 +130,15 @@ ul {
   to {
     left: 0px;
   }
+}
+
+@keyframes fallingWin {
+    from {
+        background-color: #ff0;
+    }
+    to {
+        background-color: #ffc;
+    }
 }
 
 .board-row:after {
