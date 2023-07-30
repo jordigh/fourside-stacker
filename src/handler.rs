@@ -69,10 +69,9 @@ pub async fn ws_handler(
 ) -> Result<impl Reply> {
     let client = clients.read().await.get(&uuid).cloned();
     match client {
-        Some(client) => {
-            Ok(ws
-                .on_upgrade(move |socket| ws::client_connection(socket, uuid, clients, sockets, client, db)))
-        }
+        Some(client) => Ok(ws.on_upgrade(move |socket| {
+            ws::client_connection(socket, uuid, clients, sockets, client, db)
+        })),
         None => Err(warp::reject::not_found()),
     }
 }

@@ -94,7 +94,7 @@ async fn client_msg(uuid: String, msg: Message, clients: &Clients, sockets: &Soc
             return;
         }
     };
-    
+
     let clients = clients.write().await;
     if let Some(client) = clients.get(&uuid) {
         play_piece(client, &clients, sockets, client_req.play, db).await

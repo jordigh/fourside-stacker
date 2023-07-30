@@ -25,6 +25,7 @@ pub struct Client {
 }
 
 pub const GAME_SIZE: usize = 7;
+pub const WIN_LENGTH: usize = 4;
 
 #[tokio::main]
 async fn main() {
