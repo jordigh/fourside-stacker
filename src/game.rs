@@ -135,46 +135,40 @@ async fn notify_players(
 }
 
 fn calculate_winner(squares: &mut Squares) -> Option<Colour> {
+    const SEARCH_LIMIT: usize = GAME_SIZE - WIN_LENGTH + 1;
+
     // horizontal
     for i in 0..GAME_SIZE {
-        for j in 0..GAME_SIZE {
-            if j + WIN_LENGTH <= GAME_SIZE {
-                if let Some(winner) = check_win(squares, i, j, 0, 1) {
-                    return Some(winner);
-                }
+        for j in 0..SEARCH_LIMIT {
+            if let Some(winner) = check_win(squares, i, j, 0, 1) {
+                return Some(winner);
             }
         }
     }
 
     // vertical
-    for j in 0..GAME_SIZE {
-        for i in 0..GAME_SIZE {
-            if i + WIN_LENGTH <= GAME_SIZE {
-                if let Some(winner) = check_win(squares, i, j, 1, 0) {
-                    return Some(winner);
-                }
+    for i in 0..SEARCH_LIMIT {
+        for j in 0..GAME_SIZE {
+            if let Some(winner) = check_win(squares, i, j, 1, 0) {
+                return Some(winner);
             }
         }
     }
 
     // diagonal
-    for i in 0..GAME_SIZE {
-        for j in 0..GAME_SIZE {
-            if i + WIN_LENGTH <= GAME_SIZE && j + WIN_LENGTH <= GAME_SIZE {
-                if let Some(winner) = check_win(squares, i, j, 1, 1) {
-                    return Some(winner);
-                }
+    for i in 0..SEARCH_LIMIT {
+        for j in 0..SEARCH_LIMIT {
+            if let Some(winner) = check_win(squares, i, j, 1, 1) {
+                return Some(winner);
             }
         }
     }
 
     // anti-diagonal
-    for i in 0..GAME_SIZE {
-        for j in 0..GAME_SIZE {
-            if i + WIN_LENGTH <= GAME_SIZE && j + 1 >= WIN_LENGTH {
-                if let Some(winner) = check_win(squares, i, j, 1, -1) {
-                    return Some(winner);
-                }
+    for i in 0..SEARCH_LIMIT {
+        for j in (WIN_LENGTH - 1)..GAME_SIZE {
+            if let Some(winner) = check_win(squares, i, j, 1, -1) {
+                return Some(winner);
             }
         }
     }
@@ -199,13 +193,11 @@ fn check_win(squares: &mut Squares, i: usize, j: usize, dx: isize, dy: isize) ->
         });
         if is_win_streak {
             mark_win(squares, i, j, dx, dy);
-            Some(first.value)
-        } else {
-            None
+           return  Some(first.value);
         }
-    } else {
-        None
     }
+    
+    None
 }
 
 fn mark_win(squares: &mut Squares, i: usize, j: usize, dx: isize, dy: isize) {
