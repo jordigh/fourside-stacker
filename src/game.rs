@@ -46,6 +46,7 @@ pub async fn play_piece(
     let mut game = db.write().await.get_game(client.user_id).await;
     let mut squares: Squares = serde_json::from_value(game.squares.clone()).unwrap();
     let mut current_player = calculate_current_player(&squares);
+    let have_play = play.is_some();
     if let Some(play) = play {
         place_piece(current_player, play, &mut squares);
         game.squares = serde_json::to_value(&squares).unwrap();
@@ -65,13 +66,16 @@ pub async fn play_piece(
     };
 
     let winner = calculate_winner(&mut squares);
-    match winner {
-        Some(_) => current_player = None,
-        None => match current_player {
-            Some(Colour::Red) => current_player = Some(Colour::Black),
-            Some(Colour::Black) => current_player = Some(Colour::Red),
-            None => (),
-        },
+    if have_play {
+        // Select next player if a play was made
+        match winner {
+            Some(_) => current_player = None,
+            None => match current_player {
+                Some(Colour::Red) => current_player = Some(Colour::Black),
+                Some(Colour::Black) => current_player = Some(Colour::Red),
+                None => (),
+            },
+        }
     }
     db.write().await.save_game(game).await;
 
