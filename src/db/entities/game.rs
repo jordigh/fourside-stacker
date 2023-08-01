@@ -11,6 +11,7 @@ pub struct Model {
     pub squares: Json,
     pub player_red_id: Option<i32>,
     pub player_black_id: Option<i32>,
+    pub finished: bool,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

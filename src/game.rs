@@ -46,7 +46,7 @@ pub async fn play_piece(
     let mut game = db.write().await.get_game(client.user_id).await;
     let mut squares: Squares = serde_json::from_value(game.squares.clone()).unwrap();
     let mut current_player = calculate_current_player(&squares);
-    let have_play = play.is_some();
+    let have_play = play.is_some() && !game.finished;
     if let Some(play) = play {
         place_piece(current_player, play, &mut squares);
         game.squares = serde_json::to_value(&squares).unwrap();
@@ -77,6 +77,8 @@ pub async fn play_piece(
             },
         }
     }
+
+    game.finished = game.finished || current_player.is_none();
     db.write().await.save_game(game).await;
 
     let this_payload = serde_json::to_string(&Game {
@@ -126,6 +128,7 @@ async fn notify_players(
             for uuid in sockets {
                 if let Some(client) = clients.get(uuid) {
                     if let Some(sender) = &client.sender {
+                        println!("Notifying {} of play at {}", client.username, uuid);
                         sender.send(Ok(Message::text(&payload))).unwrap();
                     }
                 }
@@ -193,10 +196,10 @@ fn check_win(squares: &mut Squares, i: usize, j: usize, dx: isize, dy: isize) ->
         });
         if is_win_streak {
             mark_win(squares, i, j, dx, dy);
-           return  Some(first.value);
+            return Some(first.value);
         }
     }
-    
+
     None
 }
 

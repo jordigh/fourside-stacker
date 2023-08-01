@@ -23,6 +23,12 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Game::Squares).json_binary().not_null())
                     .col(ColumnDef::new(Game::PlayerRedId).integer())
                     .col(ColumnDef::new(Game::PlayerBlackId).integer())
+                    .col(
+                        ColumnDef::new(Game::Finished)
+                            .boolean()
+                            .default(false)
+                            .not_null(),
+                    )
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk-game-player-red-id")
@@ -55,4 +61,5 @@ pub enum Game {
     Squares,
     PlayerRedId,
     PlayerBlackId,
+    Finished,
 }

@@ -92,9 +92,13 @@ impl Db {
         // Does a game exist where the player is player red or black? Then return it.
         let game = Game::find()
             .filter(
-                Condition::any()
-                    .add(game::Column::PlayerRedId.eq(player_id))
-                    .add(game::Column::PlayerBlackId.eq(player_id)),
+                Condition::all()
+                    .add(
+                        Condition::any()
+                            .add(game::Column::PlayerRedId.eq(player_id))
+                            .add(game::Column::PlayerBlackId.eq(player_id))
+                    )
+                    .add(game::Column::Finished.eq(false)),
             )
             .one(&self.conn)
             .await
@@ -134,8 +138,10 @@ impl Db {
 
     pub async fn save_game(&self, game: game::Model) {
         let squares = game.squares.clone();
+        let finished = game.finished;
         let mut game: game::ActiveModel = game.into();
         game.squares = ActiveValue::Set(squares);
+        game.finished = ActiveValue::Set(finished);
         game.update(&self.conn).await.unwrap();
     }
 }
