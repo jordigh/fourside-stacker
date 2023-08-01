@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 import Game from './components/game';
 import Modal from './components/Modal';
@@ -19,9 +19,11 @@ function Login({ onClick }) {
 export function App() {
   const [username, setUsername] = useState();
   const [isModalOpen, setIsModalOpen ] = useState(false);
+  const [showClose, setShowClose] = useState(false);
 
   function handleOpen(name) {
     setIsModalOpen(true);
+    setShowClose(false);
     setUsername(name);
   }
   
@@ -29,12 +31,16 @@ export function App() {
     setIsModalOpen(false);
   }
 
+  const handleGameEnd = useCallback(() => {
+    setShowClose(true);
+  }, []);
+
   return (
     <div className='app'>
       <Login onClick={handleOpen}/>
       {isModalOpen && 
-       <Modal onClose={handleClose}>
-         <Game username={username}/>
+       <Modal onClose={handleClose} showClose={showClose}>
+         <Game username={username} onGameEnd={handleGameEnd}/>
        </Modal>
       }
     </div>

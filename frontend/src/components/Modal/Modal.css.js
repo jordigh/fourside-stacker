@@ -13,7 +13,7 @@ const Modal = styled.div`
   transform: scale(0);
   transition: opacity linear 0.15s;
   z-index: 2000;
-  margin: 20px auto;
+  margin: 20px;
   &.fade-in {
     opacity: 1;
     /* transition: opacity linear 0.15s; */
@@ -42,6 +42,7 @@ const Modal = styled.div`
     z-index: 1050;
     background-color: #fefefe;
     box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
+    width: 350px;
     .box-content {
       padding: 24px;
       width: 100%;

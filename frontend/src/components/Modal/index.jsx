@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import StyledModal from "./Modal.css";
 
-function Modal ({ children, onClose }) {
+function Modal ({ children, onClose, showClose }) {
   const [fadeType, setFadeType] = useState(null);
-  const [showClose, setShowClose] = useState(false);
 
   function transitionEnd(e) {
     if (e.propertyName !== 'opacity' || fadeType === 'in')
@@ -16,10 +15,6 @@ function Modal ({ children, onClose }) {
   function handleClick(e) {
     e.preventDefault();
     setFadeType('out');
-  }
-
-  function handleGameEnd() {
-    setShowClose(true);
   }
 
   useEffect(() => {
@@ -41,9 +36,11 @@ function Modal ({ children, onClose }) {
         </div>
         <div className='box-content'>{children}</div>
         <div className='box-footer'>
+          { showClose &&
            <button onClick={handleClick} className='close'>
              Close
            </button>
+          }
         </div>
       </div>
       <div className='background'/>

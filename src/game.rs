@@ -226,7 +226,9 @@ fn calculate_current_player(squares: &Squares) -> Option<Colour> {
             Colour::Black => black_sum += 1,
         });
 
-    if red_sum == black_sum && red_sum + black_sum == GAME_SIZE * GAME_SIZE {
+    dbg!(red_sum);
+    dbg!(black_sum);
+    if red_sum + black_sum == GAME_SIZE * GAME_SIZE {
         // Board is full, nobody's turn
         None
     } else if red_sum > black_sum {
@@ -239,18 +241,45 @@ fn calculate_current_player(squares: &Squares) -> Option<Colour> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    const B: Option<Square> = Some(Square {
+        value: Colour::Black,
+        direction: Direction::Left,
+    });
+    const R: Option<Square> = Some(Square {
+        value: Colour::Red,
+        direction: Direction::Left,
+    });
+
+    #[test]
+    fn test_calculate_current_player() {
+        let u: Option<Square> = None;
+
+        let empty: Squares = vec![
+            vec![u, u, u, u, u, u, u],
+            vec![u, u, u, u, u, u, u],
+            vec![u, u, u, u, u, u, u],
+            vec![u, u, u, u, u, u, u],
+            vec![u, u, u, u, u, u, u],
+            vec![u, u, u, u, u, u, u],
+            vec![u, u, u, u, u, u, u],
+        ];
+        assert_eq!(calculate_current_player(&empty), Some(Colour::Red));
+
+        let draw: Squares = vec![
+            vec![R, B, R, B, R, B, R],
+            vec![B, R, B, R, B, R, B],
+            vec![R, R, B, B, R, R, R],
+            vec![B, B, R, B, R, B, B],
+            vec![B, R, R, B, B, R, R],
+            vec![B, B, B, R, B, R, R],
+            vec![R, B, B, B, R, R, R],
+        ];
+        assert_eq!(calculate_current_player(&draw), None);
+    }
 
     #[test]
     fn test_calculate_win() {
         let u: Option<Square> = None;
-        const B: Option<Square> = Some(Square {
-            value: Colour::Black,
-            direction: Direction::Left,
-        });
-        const R: Option<Square> = Some(Square {
-            value: Colour::Red,
-            direction: Direction::Left,
-        });
 
         let mut empty: Squares = vec![
             vec![u, u, u, u, u, u, u],

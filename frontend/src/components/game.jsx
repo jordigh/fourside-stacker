@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { gameSize } from '../constants';
 import { Board, InfoBar } from './board';
 
-function GameState({ username }) {
+function GameState({ username, onGameEnd }) {
   const [squares, setSquares] = useState(Array(gameSize).fill(null).map(() => Array(gameSize).fill(null)));
   const [colour, setColour] = useState(null);
   const [yourTurn, setYourTurn] = useState(false);
@@ -47,12 +47,17 @@ function GameState({ username }) {
         const yourTurn = game.current_player === game.your_colour;
 
         let message;
-        if (game.winner) {
-          message = game.winner === game.your_colour ? 'You win!' : 'You lose...';
-        } else {
+        if (game.current_player) {
           message = yourTurn ? 'It is your turn. What is your move?' : `Waiting for ${game.current_player}'s turn`;
+        } else {
+          onGameEnd();
+          if (game.winner) {
+            message = game.winner === game.your_colour ? 'You win!' : 'You lose...';
+          } 
+          else {
+            message = 'Tie game!';
+          }
         }
-
 
         setSquares(game.squares);
         setColour(game.current_player);
@@ -64,7 +69,7 @@ function GameState({ username }) {
     return () => {
       socketRef.current?.close();
     };
-  }, [username]);
+  }, [username, onGameEnd]);
 
   function handleSlotClick(rowNum, direction) {
     const msg = {
@@ -90,8 +95,8 @@ function GameState({ username }) {
   );
 }
 
-export default function Game({username}) {
+export default function Game({username, onGameEnd}) {
   return (
-    <GameState username={username} key={username}/>
+    <GameState username={username} key={username} onGameEnd={onGameEnd}/>
   );
 }

@@ -96,7 +96,7 @@ impl Db {
                     .add(
                         Condition::any()
                             .add(game::Column::PlayerRedId.eq(player_id))
-                            .add(game::Column::PlayerBlackId.eq(player_id))
+                            .add(game::Column::PlayerBlackId.eq(player_id)),
                     )
                     .add(game::Column::Finished.eq(false)),
             )
