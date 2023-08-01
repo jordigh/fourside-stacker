@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 
-import { gameSize } from './constants';
+import { gameSize } from '../constants';
 import { Board, InfoBar } from './components';
 
 function GameState({ username }) {
   const [squares, setSquares] = useState(Array(gameSize).fill(null).map(() => Array(gameSize).fill(null)));
-  const [colour, setColour] = useState('red');
+  const [colour, setColour] = useState(null);
   const [yourTurn, setYourTurn] = useState(false);
   const [message, setMessage] = useState('Please wait...');
   const socketRef = useRef(null);

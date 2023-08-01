@@ -1,4 +1,4 @@
-import { gameSize } from './constants';
+import { gameSize } from '../constants';
 
 const disc = "◉";
 
@@ -30,13 +30,13 @@ export function InfoBar({ message, colour }) {
   return (
     <div className="status">
       <span>
-        <Disc colour={colour}/> {message} 
+        { colour ? <Disc colour={colour}/> : '' } {message} 
       </span>
     </div>
   );
 }
 
-export function Board({ colour, yourTurn, squares, onSlotClick}) {
+export function Board({ yourTurn, squares, onSlotClick}) {
   function handleClick(rowNum, fallingDirection) {
     if (!yourTurn) {
       return;
@@ -54,10 +54,6 @@ export function Board({ colour, yourTurn, squares, onSlotClick}) {
     }
 
     if(colNum > -1 && colNum < row.length) {
-      row[colNum] = {
-        value: colour,
-        direction: fallingDirection
-      };
       onSlotClick(rowNum, fallingDirection);
     }
   }
@@ -68,7 +64,7 @@ export function Board({ colour, yourTurn, squares, onSlotClick}) {
       [...Array(gameSize).keys()].map((row) => {
         return (
           <div key={row} className="board-row">
-            <Slot yourTurn={yourTurn} direction="🡆" onSlotClick={() => handleClick(row, "right")}/>
+            <Slot yourTurn={yourTurn} direction="🡆" onSlotClick={() => handleClick(row, "left")}/>
             {
               [...Array(gameSize).keys()].map((col) => {
                 return <Square
@@ -78,7 +74,7 @@ export function Board({ colour, yourTurn, squares, onSlotClick}) {
                        />;
               })
             }
-            <Slot yourTurn={yourTurn} direction="🡄"  onSlotClick={() => handleClick(row, "left")}/>
+            <Slot yourTurn={yourTurn} direction="🡄"  onSlotClick={() => handleClick(row, "right")}/>
           </div>
         );
       })
