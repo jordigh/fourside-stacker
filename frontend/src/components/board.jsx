@@ -30,7 +30,7 @@ export function InfoBar({ message, colour }) {
   return (
     <div className="status">
       <span>
-        { colour ? <Disc colour={colour}/> : '' } {message} 
+        { colour && <Disc colour={colour}/> } {message}
       </span>
     </div>
   );

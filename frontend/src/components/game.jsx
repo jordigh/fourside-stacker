@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 
 import { gameSize } from '../constants';
-import { Board, InfoBar } from './components';
+import { Board, InfoBar } from './board';
 
 function GameState({ username }) {
   const [squares, setSquares] = useState(Array(gameSize).fill(null).map(() => Array(gameSize).fill(null)));
@@ -62,6 +62,7 @@ function GameState({ username }) {
     }
     setupSocket();
     return () => {
+      socketRef.current?.close();
     };
   }, [username]);
 
