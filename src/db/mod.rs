@@ -1,5 +1,5 @@
 use std::env;
-const DB_NAME: &str = "stackedfour";
+const DB_NAME: &str = "stacked-fourside";
 
 pub mod entities;
 mod migrator;

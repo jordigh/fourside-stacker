@@ -31,7 +31,7 @@ function Modal ({ children, onClose, showClose }) {
       <div className='box-dialog'>
         <div className='box-header'>
           <h4 className='box-title'>
-            Sideways Four Stacked
+            Stacked Fourside
           </h4>
         </div>
         <div className='box-content'>{children}</div>

@@ -1,5 +1,5 @@
 {
-  "name": "stacked-connect-4",
+  "name": "stacked-fourside",
   "main": "src/index.js",
   "private": true,
   "version": "0.0.0",
