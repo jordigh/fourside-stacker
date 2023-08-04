@@ -26,9 +26,19 @@ function Slot({ yourTurn, direction, onSlotClick }) {
   );
 }
 
-export function InfoBar({ message, colour }) {
+export function InfoBar({ message, colour, yourColour, yourName, theirName }) {
+  const theirColour = yourColour === 'red' ? 'black' : 'red';
   return (
     <div className="status">
+      <h3>
+        {
+          yourColour && [<Disc key='yourcolour' colour={yourColour}/>, yourName]}
+        {
+          theirName && theirName !== '' &&
+            [' vs ', <Disc key='opponent' colour={theirColour}/>, theirName]
+          || yourName && ' is waiting for an opponent...'
+        }
+      </h3>
       <span>
         { colour && <Disc colour={colour}/> } {message}
       </span>

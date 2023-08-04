@@ -74,7 +74,7 @@ impl Db {
             .filter(player::Column::Name.eq(username))
             .one(&self.conn)
             .await
-            .unwrap();
+           .unwrap();
         match player {
             Some(player) => player,
             // Create the player if it doesn't exist
@@ -86,6 +86,15 @@ impl Db {
             .await
             .unwrap(),
         }
+    }
+
+    pub async fn get_player_by_id(&self, player_id: i32) -> player::Model {
+        Player::find()
+            .filter(player::Column::Id.eq(player_id))
+            .one(&self.conn)
+            .await
+            .unwrap()
+            .unwrap()
     }
 
     pub async fn get_game(&self, player_id: i32) -> game::Model {

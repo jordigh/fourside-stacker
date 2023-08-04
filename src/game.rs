@@ -34,6 +34,8 @@ struct Game {
     winner: Option<Colour>,
     current_player: Option<Colour>,
     your_colour: Colour,
+    your_name: String,
+    their_name: String
 }
 
 pub async fn play_piece(
@@ -64,6 +66,11 @@ pub async fn play_piece(
         other_colour = Colour::Red;
         that_player_id = game.player_red_id;
     };
+    let your_name = db.read().await.get_player_by_id(client.user_id).await.name;
+    let their_name = match that_player_id {
+        Some(player_id) => db.read().await.get_player_by_id(player_id).await.name,
+        None => String::from("")
+    };
 
     let winner = calculate_winner(&mut squares);
     if have_play {
@@ -86,6 +93,8 @@ pub async fn play_piece(
         current_player,
         winner,
         your_colour,
+        your_name: your_name.clone(),
+        their_name: their_name.clone()
     })
     .unwrap();
     let that_payload = serde_json::to_string(&Game {
@@ -93,6 +102,8 @@ pub async fn play_piece(
         current_player,
         winner,
         your_colour: other_colour,
+        your_name: their_name,
+        their_name: your_name
     })
     .unwrap();
 

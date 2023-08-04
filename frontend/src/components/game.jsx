@@ -9,8 +9,11 @@ const protocol = import.meta.env.VITE_STACKED_FOURSIDE_HOST ? 'https' : 'http';
 function GameState({ username, onGameEnd }) {
   const [squares, setSquares] = useState(Array(gameSize).fill(null).map(() => Array(gameSize).fill(null)));
   const [colour, setColour] = useState(null);
+  const [yourColour, setYourColour] = useState(null);
   const [yourTurn, setYourTurn] = useState(false);
   const [message, setMessage] = useState('Please wait...');
+  const [yourName, setYourName] = useState();
+  const [theirName, setTheirName] = useState();
   const socketRef = useRef(null);
 
   useEffect(() => {
@@ -64,8 +67,11 @@ function GameState({ username, onGameEnd }) {
 
         setSquares(game.squares);
         setColour(game.current_player);
+        setYourColour(game.your_colour);
         setYourTurn(yourTurn);
         setMessage(message);
+        setYourName(game.your_name);
+        setTheirName(game.their_name);
       };
     }
     setupSocket();
@@ -86,7 +92,13 @@ function GameState({ username, onGameEnd }) {
   return (
     <div className="game">
       <div className="game-board">
-        <InfoBar message={message} colour={colour}/>
+        <InfoBar
+          message={message}
+          colour={colour}
+          yourColour={yourColour}
+          yourName={yourName}
+          theirName={theirName}
+        />
         <Board
           yourTurn={yourTurn}
           colour={colour}
