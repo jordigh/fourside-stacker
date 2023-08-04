@@ -13,4 +13,4 @@
 * DONE dockerise the game
 ** DONE Write Dockerfile
 ** DONE Do docker-compose.yaml
-* TODO deploy to jordigh.com
+* DONE deploy to jordigh.com
