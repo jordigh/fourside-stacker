@@ -3,6 +3,9 @@ import { useState, useEffect, useRef } from 'react';
 import { gameSize } from '../constants';
 import { Board, InfoBar } from './board';
 
+const base_host = import.meta.env.VITE_STACKED_FOURSIDE_HOST || 'localhost:4321';
+const protocol = import.meta.env.VITE_STACKED_FOURSIDE_HOST ? 'https' : 'http';
+
 function GameState({ username, onGameEnd }) {
   const [squares, setSquares] = useState(Array(gameSize).fill(null).map(() => Array(gameSize).fill(null)));
   const [colour, setColour] = useState(null);
@@ -18,7 +21,7 @@ function GameState({ username, onGameEnd }) {
       }
 
       const response = await fetch(
-        'http://localhost:8000/register',
+        `${protocol}://${base_host}/register`,
         {
           method: 'POST',
           body: JSON.stringify({

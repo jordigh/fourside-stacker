@@ -87,8 +87,8 @@ async fn main() {
         .or(ws_route)
         .with(cors);
 
-    println!("Listening at http://127.0.0.1:8000");
-    warp::serve(routes).run(([127, 0, 0, 1], 8000)).await;
+    println!("Listening at http://127.0.0.1:4321");
+    warp::serve(routes).run(([127, 0, 0, 1], 4321)).await;
 }
 
 fn with_clients(clients: Clients) -> impl Filter<Extract = (Clients,), Error = Infallible> + Clone {

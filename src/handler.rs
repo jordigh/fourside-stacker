@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use crate::{ws, Client, Clients, Db, Result, Sockets};
 use serde::{Deserialize, Serialize};
-use std::fs;
+use std::{env, fs};
 use uuid::Uuid;
 use warp::{http::Response, http::StatusCode, reply::json, Reply};
 
@@ -26,8 +26,13 @@ pub async fn register_handler(
     let player = db.write().await.get_player(&username).await;
     let uuid = Uuid::new_v4().as_simple().to_string();
     register_client(username.clone(), player.id, uuid.clone(), clients, sockets).await;
+    let protocol;
+    let base_url = match env::var("STACKED_FOURSIDE_HOST") {
+        Ok(val) => {protocol = "wss"; val},
+        _ => {protocol = "ws"; String::from("127.0.0.1:4321")}
+    };
     Ok(json(&RegisterResponse {
-        url: format!("ws://127.0.0.1:8000/ws/{uuid}"),
+        url: format!("{protocol}://{base_url}/ws/{uuid}"),
     }))
 }
 
