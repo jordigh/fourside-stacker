@@ -2,7 +2,8 @@
 extern crate log;
 
 use std::collections::{HashMap, HashSet};
-use std::convert::Infallible;
+use std::{env, convert::Infallible};
+use std::net::{SocketAddr};
 use std::sync::Arc;
 use tokio::sync::{mpsc, RwLock};
 use warp::{ws::Message, Filter, Rejection};
@@ -87,8 +88,13 @@ async fn main() {
         .or(ws_route)
         .with(cors);
 
-    println!("Listening at http://127.0.0.1:4321");
-    warp::serve(routes).run(([127, 0, 0, 1], 4321)).await;
+    let host = match env::var("HOST") {
+        Ok(host) => host,
+        _ => String::from("127.0.0.1:4321")
+    };
+    println!("Listening at http://{host}");
+    let socket: SocketAddr = host.parse().unwrap();
+    warp::serve(routes).run(socket).await;
 }
 
 fn with_clients(clients: Clients) -> impl Filter<Extract = (Clients,), Error = Infallible> + Clone {

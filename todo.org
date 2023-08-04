@@ -1,0 +1,16 @@
+* DONE implement calculate_winner
+* DONE write test for calculate_winner
+* DONE make calculate_winner decorate winning tiles
+* DONE decorate wins in the frontend
+* DONE mark games as done in database
+* DONE handle in frontend game change
+* DONE do transition in frontend
+* TODO do a title/page title
+* DONE display usernames in frontend
+* DONE pass usernames from backend
+* DONE handle base url in frontend build
+* DONE handle base url in Rust backend
+* DONE dockerise the game
+** DONE Write Dockerfile
+** DONE Do docker-compose.yaml
+* TODO deploy to jordigh.com
