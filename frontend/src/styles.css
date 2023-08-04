@@ -81,6 +81,14 @@ ul {
   width: 17px;
 }
 
+.slot img {
+    transition: 0.2s;
+}
+
+.slot.yourTurn img:hover {
+    transform: scale(1.2);
+}
+
 .yourTurn {
   cursor: pointer;
 }

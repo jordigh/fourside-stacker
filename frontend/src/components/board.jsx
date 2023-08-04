@@ -21,7 +21,9 @@ function Slot({ yourTurn, direction, onSlotClick }) {
   const className = yourTurn ? "slot yourTurn" :  "slot";
   return (
     <div className={className} onClick={onSlotClick}>
-      {direction}
+      {/*Yeah, this direction, is a bit weird, but seemed most intuitive during playtesting */}
+      {direction === 'left' && <img src="right-arrow.png"/>}
+      {direction === 'right' && <img src="left-arrow.png"/> }
     </div>
   );
 }
@@ -74,7 +76,7 @@ export function Board({ yourTurn, squares, onSlotClick}) {
       [...Array(gameSize).keys()].map((row) => {
         return (
           <div key={row} className="board-row">
-            <Slot yourTurn={yourTurn} direction="🡆" onSlotClick={() => handleClick(row, "left")}/>
+            <Slot yourTurn={yourTurn} direction="right" onSlotClick={() => handleClick(row, "right")}/>
             {
               [...Array(gameSize).keys()].map((col) => {
                 return <Square
@@ -84,7 +86,7 @@ export function Board({ yourTurn, squares, onSlotClick}) {
                        />;
               })
             }
-            <Slot yourTurn={yourTurn} direction="🡄"  onSlotClick={() => handleClick(row, "right")}/>
+            <Slot yourTurn={yourTurn} direction="left"  onSlotClick={() => handleClick(row, "left")}/>
           </div>
         );
       })
