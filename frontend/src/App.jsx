@@ -35,8 +35,11 @@ export function App() {
     setShowClose(true);
   }, []);
 
+  const title = "Let's play a game!";
+
   return (
     <div className='app'>
+      <h1>{title}</h1>
       <Login onClick={handleOpen}/>
       {isModalOpen && 
        <Modal onClose={handleClose} showClose={showClose}>

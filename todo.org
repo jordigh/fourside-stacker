@@ -5,7 +5,7 @@
 * DONE mark games as done in database
 * DONE handle in frontend game change
 * DONE do transition in frontend
-* TODO do a title/page title
+* DONE do a title/page title
 * DONE display usernames in frontend
 * DONE pass usernames from backend
 * DONE handle base url in frontend build
