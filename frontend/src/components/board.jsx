@@ -1,4 +1,6 @@
 import { gameSize } from '../constants';
+import leftArrow from './left-arrow.png';
+import rightArrow from './right-arrow.png';
 
 const disc = "◉";
 
@@ -21,9 +23,9 @@ function Slot({ yourTurn, direction, onSlotClick }) {
   const className = yourTurn ? "slot yourTurn" :  "slot";
   return (
     <div className={className} onClick={onSlotClick}>
-      {/*Yeah, this direction, is a bit weird, but seemed most intuitive during playtesting */}
-      {direction === 'left' && <img src="right-arrow.png"/>}
-      {direction === 'right' && <img src="left-arrow.png"/> }
+      {/*Yeah, this direction is a bit weird, but seemed most intuitive during playtesting */}
+      {direction === 'left' && <img src={rightArrow}/>}
+      {direction === 'right' && <img src={leftArrow}/> }
     </div>
   );
 }
