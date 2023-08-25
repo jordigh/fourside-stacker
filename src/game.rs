@@ -35,7 +35,7 @@ struct Game {
     current_player: Option<Colour>,
     your_colour: Colour,
     your_name: String,
-    their_name: String
+    their_name: String,
 }
 
 pub async fn play_piece(
@@ -45,12 +45,24 @@ pub async fn play_piece(
     play: Option<Play>,
     db: &Db,
 ) {
-    let mut game = db.write().await.get_game(client.user_id).await;
+    let is_ai_game = client.username == "AI";
+    let mut game = if is_ai_game {
+        db.write().await.get_ai_game().await
+    } else {
+        db.write().await.get_game(client.user_id).await
+    };
     let mut squares: Squares = serde_json::from_value(game.squares.clone()).unwrap();
     let mut current_player = calculate_current_player(&squares);
     let have_play = play.is_some() && !game.finished;
     if let Some(play) = play {
         place_piece(current_player, play, &mut squares);
+        if is_ai_game {
+            let ai_play = Play {
+                row: 0,
+                direction: Direction::Left,
+            };
+            place_piece(Some(Colour::Black), ai_play, &mut squares)
+        }
         game.squares = serde_json::to_value(&squares).unwrap();
     }
 
@@ -69,7 +81,7 @@ pub async fn play_piece(
     let your_name = db.read().await.get_player_by_id(client.user_id).await.name;
     let their_name = match that_player_id {
         Some(player_id) => db.read().await.get_player_by_id(player_id).await.name,
-        None => String::from("")
+        None => String::from(""),
     };
 
     let winner = calculate_winner(&mut squares);
@@ -94,7 +106,7 @@ pub async fn play_piece(
         winner,
         your_colour,
         your_name: your_name.clone(),
-        their_name: their_name.clone()
+        their_name: their_name.clone(),
     })
     .unwrap();
     let that_payload = serde_json::to_string(&Game {
@@ -103,7 +115,7 @@ pub async fn play_piece(
         winner,
         your_colour: other_colour,
         your_name: their_name,
-        their_name: your_name
+        their_name: your_name,
     })
     .unwrap();
 

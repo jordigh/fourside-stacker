@@ -19,15 +19,15 @@ pub struct ClientRequest {
     play: Option<Play>,
 }
 
-pub async fn remove_socket(uuid: String, clients: Clients, sockets: Sockets) {
+pub async fn remove_socket(uuid: &String, clients: Clients, sockets: Sockets) {
     let mut clients = clients.write().await;
-    if let Some(client) = clients.get(&uuid) {
+    if let Some(client) = clients.get(uuid) {
         let user_id = client.user_id;
-        clients.remove(&uuid);
+        clients.remove(uuid);
 
         let mut sockets = sockets.write().await;
         if let Some(uuids) = sockets.get_mut(&user_id) {
-            uuids.remove(&uuid);
+            uuids.remove(uuid);
         }
     }
 }
@@ -71,7 +71,7 @@ pub async fn client_connection(
         client_msg(uuid.clone(), msg, &clients, &sockets, &db).await;
     }
 
-    clients.write().await.remove(&uuid);
+    remove_socket(&uuid, clients, sockets).await;
     println!("{} disconnected at {}", &username, uuid);
 }
 
@@ -87,7 +87,7 @@ async fn client_msg(uuid: String, msg: Message, clients: &Clients, sockets: &Soc
         return;
     }
 
-    let client_req: ClientRequest = match from_str(&message) {
+    let client_req: ClientRequest = match from_str(message) {
         Ok(v) => v,
         Err(e) => {
             eprintln!("error while parsing message to topics request: {}", e);
@@ -100,6 +100,5 @@ async fn client_msg(uuid: String, msg: Message, clients: &Clients, sockets: &Soc
         play_piece(client, &clients, sockets, client_req.play, db).await
     } else {
         eprintln!("No player found with socket id {uuid}");
-        return;
     }
 }

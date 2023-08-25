@@ -66,6 +66,11 @@ impl Db {
         };
         // Not sure, maybe get rid of this param
         assert!(db.url == database_url);
+
+        // Ensure AI players are ID 1 and 2
+        db.get_player(&String::from("AI")).await;
+        db.get_player(&String::from("HAL9000")).await;
+
         Ok(db)
     }
 
@@ -74,7 +79,7 @@ impl Db {
             .filter(player::Column::Name.eq(username))
             .one(&self.conn)
             .await
-           .unwrap();
+            .unwrap();
         match player {
             Some(player) => player,
             // Create the player if it doesn't exist
@@ -133,11 +138,36 @@ impl Db {
             return game;
         }
 
+        self.create_empty_game(player_id, None).await
+    }
+
+    pub async fn get_ai_game(&self) -> game::Model {
+        // Does an AI game exist?
+        let game = Game::find()
+            .filter(
+                Condition::all()
+                    .add(game::Column::PlayerRedId.eq(1))
+                    .add(game::Column::PlayerBlackId.eq(2))
+                    .add(game::Column::Finished.eq(false)),
+            )
+            .one(&self.conn)
+            .await
+            .unwrap();
+        if let Some(game) = game {
+            return game;
+        }
+
+        // Otherwise, create AI game
+        self.create_empty_game(1, Some(2)).await
+    }
+
+    async fn create_empty_game(&self, player_id: i32, player2_id: Option<i32>) -> game::Model {
         // Else, start a new game and assign the player to player red.
         let squares: Vec<Vec<Option<Square>>> = vec![vec![None; GAME_SIZE]; GAME_SIZE];
         game::ActiveModel {
             squares: ActiveValue::Set(serde_json::to_value(&squares).unwrap()),
             player_red_id: ActiveValue::Set(Some(player_id)),
+            player_black_id: ActiveValue::Set(player2_id),
             ..Default::default()
         }
         .insert(&self.conn)

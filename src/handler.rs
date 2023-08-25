@@ -28,8 +28,14 @@ pub async fn register_handler(
     register_client(username.clone(), player.id, uuid.clone(), clients, sockets).await;
     let protocol;
     let base_url = match env::var("STACKED_FOURSIDE_HOST") {
-        Ok(val) => {protocol = "wss"; val},
-        _ => {protocol = "ws"; String::from("127.0.0.1:4321")}
+        Ok(val) => {
+            protocol = "wss";
+            val
+        }
+        _ => {
+            protocol = "ws";
+            String::from("127.0.0.1:4321")
+        }
     };
     Ok(json(&RegisterResponse {
         url: format!("{protocol}://{base_url}/ws/{uuid}"),
@@ -61,7 +67,7 @@ pub async fn unregister_handler(
     clients: Clients,
     sockets: Sockets,
 ) -> Result<impl Reply> {
-    ws::remove_socket(uuid, clients, sockets).await;
+    ws::remove_socket(&uuid, clients, sockets).await;
     Ok(StatusCode::OK)
 }
 

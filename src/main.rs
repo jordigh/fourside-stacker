@@ -2,9 +2,9 @@
 extern crate log;
 
 use std::collections::{HashMap, HashSet};
-use std::{env, convert::Infallible};
-use std::net::{SocketAddr};
+use std::net::SocketAddr;
 use std::sync::Arc;
+use std::{convert::Infallible, env};
 use tokio::sync::{mpsc, RwLock};
 use warp::{ws::Message, Filter, Rejection};
 
@@ -90,7 +90,7 @@ async fn main() {
 
     let host = match env::var("HOST") {
         Ok(host) => host,
-        _ => String::from("127.0.0.1:4321")
+        _ => String::from("127.0.0.1:4321"),
     };
     println!("Listening at http://{host}");
     let socket: SocketAddr = host.parse().unwrap();
